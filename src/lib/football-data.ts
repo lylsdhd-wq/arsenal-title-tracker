@@ -1,4 +1,5 @@
 import type { FootballDataStandingsResponse } from "@/types/standings";
+import type { FootballDataMatchesResponse } from "@/types/matches";
 
 const API_BASE = "https://api.football-data.org/v4";
 
@@ -46,19 +47,17 @@ interface FetchOptions {
 }
 
 /**
- * 英超（Premier League）の順位表を Football-Data.org から取得する。
+ * Football-Data.org の任意のエンドポイントを叩く共通処理。
  *
  * - API キーは環境変数 FOOTBALL_DATA_API_KEY からサーバーサイドでのみ参照する。
  *   クライアントには絶対に渡さない。
- * - Next.js の fetch キャッシュ(revalidate)を使い、同じデータへのリクエストを
- *   一定時間まとめることで、無料プランのレート制限(10回/分)を自然に回避する。
+ * - Next.js の fetch キャッシュ(revalidate)で同じ URL へのリクエストを一定時間
+ *   まとめ、無料プランのレート制限(10回/分)を自然に回避する。
  */
-export async function fetchPremierLeagueStandings(
-  options: FetchOptions = {},
-): Promise<{
-  data: FootballDataStandingsResponse;
-  rateLimit: RateLimitInfo;
-}> {
+async function fetchFromFootballData<T>(
+  path: string,
+  options: FetchOptions,
+): Promise<{ data: T; rateLimit: RateLimitInfo }> {
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
   if (!apiKey) {
@@ -68,13 +67,10 @@ export async function fetchPremierLeagueStandings(
     );
   }
 
-  const response = await fetch(
-    `${API_BASE}/competitions/${PREMIER_LEAGUE_CODE}/standings`,
-    {
-      headers: { "X-Auth-Token": apiKey },
-      next: { revalidate: options.revalidate ?? 60 },
-    },
-  );
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { "X-Auth-Token": apiKey },
+    next: { revalidate: options.revalidate ?? 60 },
+  });
 
   const rateLimit = readRateLimit(response.headers);
 
@@ -87,7 +83,29 @@ export async function fetchPremierLeagueStandings(
     throw new FootballDataError(message, response.status, rateLimit);
   }
 
-  const data = (await response.json()) as FootballDataStandingsResponse;
+  const data = (await response.json()) as T;
 
   return { data, rateLimit };
+}
+
+/** 英超（Premier League）の順位表を取得する */
+export function fetchPremierLeagueStandings(options: FetchOptions = {}) {
+  return fetchFromFootballData<FootballDataStandingsResponse>(
+    `/competitions/${PREMIER_LEAGUE_CODE}/standings`,
+    options,
+  );
+}
+
+/**
+ * 英超（Premier League）の全試合を取得する。
+ *
+ * チーム別エンドポイントではなく大会別エンドポイントを使うことで、
+ * 1リクエストで全チームの試合をまとめて取得し、レート制限を節約する。
+ * 未消化試合の絞り込みは mapMatches 側で行う。
+ */
+export function fetchPremierLeagueMatches(options: FetchOptions = {}) {
+  return fetchFromFootballData<FootballDataMatchesResponse>(
+    `/competitions/${PREMIER_LEAGUE_CODE}/matches`,
+    options,
+  );
 }
