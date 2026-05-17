@@ -12,7 +12,8 @@ import { calculatePredictedStandings } from "@/lib/standings-calculator";
 import { runMonteCarlo } from "@/lib/monte-carlo";
 import { ProbabilityCard } from "@/components/ProbabilityCard";
 import { StandingsTable } from "@/components/StandingsTable";
-import { MatchPredictor } from "@/components/MatchPredictor";
+import { MatchPredictor, RivalMatchPredictor } from "@/components/MatchPredictor";
+import { buildRivalMatchGroups } from "@/lib/rival-matches";
 
 /** SWR 用フェッチャー。/api/* を叩き、エラー時は例外を投げる。 */
 async function fetchJson<T>(url: string): Promise<T> {
@@ -79,6 +80,17 @@ export default function Home() {
     );
   }, [titleRace.data, predictions]);
 
+  // 優勝争いライバルの残り試合（チームごとにグループ化）
+  const rivalGroups = useMemo(() => {
+    if (!titleRace.data) {
+      return [];
+    }
+    return buildRivalMatchGroups(
+      titleRace.data.contenders,
+      titleRace.data.matches,
+    );
+  }, [titleRace.data]);
+
   const isLoading = titleRace.isLoading || arsenalMatches.isLoading;
   const error = titleRace.error ?? arsenalMatches.error;
 
@@ -124,12 +136,26 @@ export default function Home() {
 
       {/* 下部: アーセナルの残り試合の予測 */}
       {arsenalMatches.data && (
-        <section>
+        <section className="mb-8">
           <h2 className="mb-2 text-lg font-bold">
             アーセナルの残り試合を予測
           </h2>
           <MatchPredictor
             matches={arsenalMatches.data.matches}
+            predictions={predictions}
+            onPredict={handlePredict}
+          />
+        </section>
+      )}
+
+      {/* 下部: 優勝争いライバルの残り試合の予測 */}
+      {titleRace.data && (
+        <section>
+          <h2 className="mb-2 text-lg font-bold">
+            優勝争いライバルの試合を予測
+          </h2>
+          <RivalMatchPredictor
+            groups={rivalGroups}
             predictions={predictions}
             onPredict={handlePredict}
           />
