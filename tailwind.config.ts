@@ -11,6 +11,11 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        // アーセナルのテーマカラー（クラブの公式レッド）
+        arsenal: {
+          DEFAULT: "#EF0107",
+          dark: "#C80005",
+        },
       },
     },
   },
