@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# アーセナル優勝トラッカー (arsenal-title-tracker)
 
-## Getting Started
+プレミアリーグの順位表をリアルタイムに表示し、アーセナルの残り試合の勝敗を予測して、
+最終順位と優勝確率（モンテカルロ・シミュレーション）を計算する Web アプリケーションです。
 
-First, run the development server:
+## プロジェクト概要
+
+イングランド・プレミアリーグのファン向けツールです。
+ユーザーはアーセナルの残り試合について「勝ち / 引き分け / 負け」を予測でき、
+その入力をもとに最終的な勝点・順位、そして優勝確率をモンテカルロ法でシミュレーションします。
+
+主な機能:
+
+- リアルタイムのプレミアリーグ順位表を表示
+- 優勝争いチーム（順位表 上位5チーム）の自動抽出
+- アーセナルおよびライバルの残り試合日程を取得・表示
+- 各試合の勝敗（勝 / 引分 / 敗）をユーザーが予測
+- 予測にもとづく最終順位の自動計算
+- モンテカルロ・シミュレーション（10,000回）による優勝確率の算出
+
+> **開発状況**: 主要機能（順位表・残り試合の予測・優勝確率シミュレーション）を実装済みです。
+
+## 技術スタック
+
+| 分類           | 使用技術                                          |
+| -------------- | ------------------------------------------------- |
+| フレームワーク | Next.js 14 (App Router)                           |
+| 言語           | TypeScript                                        |
+| スタイリング   | Tailwind CSS                                      |
+| データ取得     | SWR                                               |
+| テスト         | Vitest / Testing Library                          |
+| データソース   | [Football-Data.org](https://www.football-data.org/) API (v4) |
+
+### 設計上のポイント
+
+- **API キーの保護**: Football-Data.org の API キーはクライアントに公開せず、
+  Next.js の API Routes（`/api/standings`、`/api/arsenal-matches`、
+  `/api/title-race-matches`）を経由したサーバーサイドプロキシで取得します。
+- **レート制限への配慮**: 無料プランは「10 リクエスト/分」の制限があるため、
+  大会別エンドポイントを使い 1 リクエストで全試合を取得し、`fetch` のキャッシュ
+  （`revalidate: 60`）でリクエスト頻度を抑え、レスポンスヘッダーで残数を監視しています。
+- **計算ロジックの分離**: 順位計算とモンテカルロ・シミュレーションは
+  純粋関数（`src/lib`）として実装し、Vitest で単体テストしています。
+
+## セットアップ手順
+
+### 1. 依存パッケージのインストール
+
+```bash
+npm install
+```
+
+### 2. 環境変数の設定
+
+[Football-Data.org](https://www.football-data.org/client/register) で無料の API キーを取得し、
+`.env.example` をコピーして `.env.local` を作成します。
+
+```bash
+cp .env.example .env.local
+```
+
+作成した `.env.local` に、取得した API キーを設定します。
+
+```
+FOOTBALL_DATA_API_KEY=取得したAPIキー
+```
+
+### 3. 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで [http://localhost:3000](http://localhost:3000) を開きます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## スクリプト一覧
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| コマンド            | 説明                          |
+| ------------------- | ----------------------------- |
+| `npm run dev`       | 開発サーバーを起動            |
+| `npm run build`     | 本番ビルド                    |
+| `npm run lint`      | ESLint によるチェック         |
+| `npm run typecheck` | TypeScript の型チェック       |
+| `npm test`          | Vitest による単体テスト       |
 
-## Learn More
+## 今後の予定
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] アーセナルの残り試合日程の表示
+- [x] 各試合の勝敗予測 UI
+- [x] モンテカルロ・シミュレーションによる優勝確率の計算
+- [ ] チームエンブレム画像の表示
+- [ ] 予測内容の保存（URL 共有 / ローカルストレージ）
+- [ ] テストカバレッジの拡充
