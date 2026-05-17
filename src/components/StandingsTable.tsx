@@ -1,9 +1,5 @@
-import type { StandingsResult } from "@/types/standings";
-
-/** アーセナルの行かどうかを判定する（強調表示用） */
-function isArsenal(teamName: string): boolean {
-  return teamName.includes("Arsenal");
-}
+import type { StandingRow } from "@/types/standings";
+import { ARSENAL_TEAM_ID } from "@/lib/constants";
 
 /** 得失点差を符号付きの文字列にする（例: 12 → "+12"） */
 function formatGoalDifference(diff: number): string {
@@ -11,11 +7,11 @@ function formatGoalDifference(diff: number): string {
 }
 
 interface StandingsTableProps {
-  data: StandingsResult;
+  rows: StandingRow[];
 }
 
-/** プレミアリーグの順位表。アーセナルの行をテーマカラーで強調する。 */
-export function StandingsTable({ data }: StandingsTableProps) {
+/** 順位表。アーセナルの行をテーマカラーで強調する。 */
+export function StandingsTable({ rows }: StandingsTableProps) {
   return (
     <table className="w-full border-collapse text-sm">
       <thead>
@@ -31,13 +27,13 @@ export function StandingsTable({ data }: StandingsTableProps) {
         </tr>
       </thead>
       <tbody>
-        {data.rows.map((row) => {
-          const arsenal = isArsenal(row.teamName);
+        {rows.map((row) => {
+          const isArsenal = row.teamId === ARSENAL_TEAM_ID;
           return (
             <tr
               key={row.teamId}
               className={
-                arsenal
+                isArsenal
                   ? "bg-arsenal/10 font-semibold"
                   : "border-b border-gray-100"
               }
@@ -46,7 +42,7 @@ export function StandingsTable({ data }: StandingsTableProps) {
                 {row.position}
               </td>
               <td className="px-3 py-2">
-                <span className={arsenal ? "text-arsenal" : ""}>
+                <span className={isArsenal ? "text-arsenal" : ""}>
                   {row.teamName}
                 </span>
               </td>
