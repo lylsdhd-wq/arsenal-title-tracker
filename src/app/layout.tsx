@@ -1,22 +1,27 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+// 衬線ディスプレイ — 巨大な優勝確率の数字・各見出しに使う可変フォント（opsz 軸）
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  axes: ["opsz"],
+  display: "swap",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+
+// 等幅 — タグ・日付・数値注釈に使う
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  weight: ["400", "500"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "アーセナル優勝トラッカー",
   description:
-    "プレミアリーグの順位表をリアルタイムに表示し、アーセナルの優勝確率をシミュレーションするツール。",
+    "残り試合の結果を予測してプレミアリーグの優勝確率をシミュレーション。",
 };
 
 export default function RootLayout({
@@ -24,13 +29,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 本文の日本語フォントは Tailwind の font-sans（システムフォント）でまかなう。
   return (
-    <html lang="ja">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+    <html
+      lang="ja"
+      className={`${fraunces.variable} ${jetbrainsMono.variable}`}
+    >
+      <body>{children}</body>
     </html>
   );
 }

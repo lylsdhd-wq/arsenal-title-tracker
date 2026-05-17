@@ -2,15 +2,126 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #f5f5f5;
-  --foreground: #171717;
+@layer base {
+  html,
+  body {
+    @apply bg-paper font-sans text-ink-900;
+    font-feature-settings: "palt" 1;
+    letter-spacing: 0.005em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 紙の質感を出す、ごく薄い放射グラデーション */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(20, 17, 13, 0.018), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(20, 17, 13, 0.014), transparent 40%);
+    z-index: 0;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+  }
+
+  ::selection {
+    background: rgba(239, 1, 7, 0.18);
+    color: #14110d;
+  }
+
+  button:focus-visible {
+    outline: 1.5px solid #ef0107;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  /* 欧文は Geist、日本語はシステムの日本語フォントにフォールバックする */
-  font-family: var(--font-geist-sans), "Hiragino Sans", "Noto Sans JP",
-    sans-serif;
+@layer components {
+  /* 全体で使う小さなモノラベル */
+  .tag {
+    @apply font-mono text-[10.5px] uppercase text-ink-500;
+    letter-spacing: 0.1em;
+  }
+
+  /* 予測ボタングループ（1pxヘアラインのセグメントピル） */
+  .pred-group {
+    @apply inline-flex items-stretch overflow-hidden rounded-full border border-ink-200 bg-paper;
+  }
+  .pred-btn {
+    @apply px-3.5 py-1.5 text-[12px] font-medium text-ink-500 transition-colors leading-none border-l border-ink-100 text-center;
+    min-width: 78px;
+    letter-spacing: 0.04em;
+  }
+  .pred-btn:first-child {
+    border-left: none;
+  }
+  .pred-btn:hover:not(:disabled) {
+    @apply bg-ink-50 text-ink-900;
+  }
+  .pred-btn[data-active="true"] {
+    @apply text-arsenal font-semibold;
+  }
+  .pred-btn[data-active="true"]::after {
+    content: "";
+    display: block;
+    width: 14px;
+    height: 1.5px;
+    margin: 4px auto -1px;
+    border-radius: 1px;
+    background: #ef0107;
+  }
+  .pred-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* チームカラーチップ（細い縦バー） */
+  .team-chip {
+    @apply inline-block flex-shrink-0;
+    width: 3px;
+    height: 14px;
+    border-radius: 1px;
+  }
+  .team-chip-lg {
+    height: 18px;
+  }
+
+  /* アーセナル行に引く2pxの赤い縦ルール */
+  .arsenal-rule {
+    @apply absolute left-0 w-[2px] bg-arsenal;
+    top: 6px;
+    bottom: 6px;
+  }
+
+  /* ヒーロー数字の下線 */
+  .hero-underline {
+    @apply h-[2px] bg-arsenal animate-rule;
+    transform-origin: left center;
+  }
+
+  /* 再計算中のパルスドット */
+  .pulse-dot {
+    @apply bg-arsenal rounded-full animate-pulse-dot;
+    width: 6px;
+    height: 6px;
+  }
+
+  /* 生存 / 脱落 バッジ */
+  .badge {
+    @apply inline-flex items-center gap-1.5 font-mono text-[10.5px] uppercase border rounded-full;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    line-height: 1;
+  }
+  .badge-alive {
+    @apply text-ink-700 border-ink-200;
+  }
+  .badge-dead {
+    @apply text-ink-400 border-ink-100 bg-ink-50 line-through;
+  }
 }
